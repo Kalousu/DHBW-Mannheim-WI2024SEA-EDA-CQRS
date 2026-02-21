@@ -1,6 +1,7 @@
 <script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import shiggyService from './api/shiggyService'
 import square from './assets/square.png'
-import { ref } from 'vue'
 import happy from './assets/tamagochi/happy.gif'
 import eating from './assets/tamagochi/eating.gif'
 import playing from './assets/tamagochi/playing.gif'
@@ -16,14 +17,15 @@ import apple from './assets/icons/apple.png'
 import bed from './assets/icons/bed.png'
 import pokeball from './assets/icons/pokeball.png'
 import border from './assets/border.png'
-
-// Button-Bilder importieren
 import feedButton from './assets/buttons/feedbutton.png'
 import sleepButton from './assets/buttons/sleepbutton.png'
 import playButton from './assets/buttons/playbutton.png'
 
 const currentGif = ref(happy)
 const disabled = ref(false)
+const hunger = ref(50)
+const sleep = ref(50)
+const boredom = ref(50)
 
 function changeGif(newGif) {
 	if(disabled.value) return
@@ -36,39 +38,99 @@ function changeGif(newGif) {
 		currentGif.value = happy
 	}, 5000)
 }
+
+function handleStatusUpdate(status) {
+	hunger.value = status.hunger
+	sleep.value = status.sleep
+	boredom.value = 100 - status.happiness
+}
+
+async function handleFeed() {
+	if (disabled.value) return
+	
+	try {
+		await shiggyService.feedShiggy()
+		changeGif(eating)
+	} catch (error) {
+		console.error('Failed to feed Shiggy:', error)
+	}
+}
+
+async function handleSleep() {
+	if (disabled.value) return
+	
+	try {
+		await shiggyService.sleepShiggy()
+		changeGif(sleeping)
+	} catch (error) {
+		console.error('Failed to put Shiggy to sleep:', error)
+	}
+}
+
+async function handlePlay() {
+	if (disabled.value) return
+	
+	try {
+		await shiggyService.playShiggy()
+		changeGif(playing)
+	} catch (error) {
+		console.error('Failed to play with Shiggy:', error)
+	}
+}
+
+onMounted(async () => {
+	try {
+		await shiggyService.connect(handleStatusUpdate)
+		console.log('Connected to Shiggy backend!')
+		
+		setTimeout(async () => {
+			if (hunger.value === 50 && sleep.value === 50 && boredom.value === 50) {
+				const status = await shiggyService.getStatus()
+				handleStatusUpdate(status)
+			}
+		}, 1000)
+	} catch (error) {
+		console.error('Failed to connect to backend:', error)
+	}
+})
+
+onBeforeUnmount(() => {
+	shiggyService.disconnect()
+})
 </script>
 
 <template>
-	<h1>SquirtleGotchi</h1>
-	<div class="gif-container">
-		<img :src="currentGif" class="tamagochi-gif"/>
-		<img :src="border" class="border-frame"/>
-		
-	</div>
 	<div>
-		<p><img :src="hungerbar" class="status-icon"/> Hunger: xxx</p>
-		<p><img :src="tiredbar" class="status-icon"/> Sleep: xxx</p>
-		<p><img :src="boredbar" class="status-icon"/> Boredom: xxx</p>
-	</div>	
-	<div style="display: flex; justify-content: center; gap: 30px;">
-		<img 
-			:src="feedButton" 
-			@click="!disabled && changeGif(eating)"
-			:class="['button-image', { 'disabled': disabled }]"
-			alt="Feed"
-		/>
-		<img 
-			:src="sleepButton" 
-			@click="!disabled && changeGif(sleeping)"
-			:class="['button-image', { 'disabled': disabled }]"
-			alt="Sleep"
-		/>
-		<img 
-			:src="playButton" 
-			@click="!disabled && changeGif(playing)"
-			:class="['button-image', { 'disabled': disabled }]"
-			alt="Play"
-		/>
+		<h1>SquirtleGotchi</h1>
+		<div class="gif-container">
+			<img :src="currentGif" class="tamagochi-gif"/>
+			<img :src="border" class="border-frame"/>
+		</div>
+		<div>
+			<p><img :src="hungerbar" class="status-icon"/> Hunger: {{ hunger }}</p>
+			<p><img :src="tiredbar" class="status-icon"/> Sleep: {{ sleep }}</p>
+			<p><img :src="boredbar" class="status-icon"/> Boredom: {{ boredom }}</p>
+		</div>	
+		<div style="display: flex; justify-content: center; gap: 30px;">
+			<img 
+				:src="feedButton" 
+				@click="handleFeed"
+				:class="['button-image', { 'disabled': disabled }]"
+				alt="Feed"
+			/>
+			<img 
+				:src="sleepButton" 
+				@click="handleSleep"
+				:class="['button-image', { 'disabled': disabled }]"
+				alt="Sleep"
+			/>
+			<img 
+				:src="playButton" 
+				@click="handlePlay"
+				:class="['button-image', { 'disabled': disabled }]"
+				alt="Play"
+			/>
+		</div>
 	</div>
 </template>
 
