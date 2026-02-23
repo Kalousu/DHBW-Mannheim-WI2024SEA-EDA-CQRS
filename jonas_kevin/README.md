@@ -3,7 +3,7 @@
 Unser "kleines" CQRS + EDA Projekt für ein Shiggy-Tamagochi, welches basierend auf RabbitMQ mittels einer Event-Queue zwischen frontend und backend kommuniziert. Das Projekt wird wie folgt ausgeführt:
 
 1) RabbitMQ starten (Docker)
-- docker run -d --name rabbitmq -p 5672:6572 -p 15672:1562 rabbitmq:3-management (Die UI ist unter localhost:15672 mit dem login guest / guest aufrufbar)
+- docker run -d --name rabbitmq --restart unless-stopped -p 5672:5672 -p 15672:15672 rabbitmq:3-management (Die UI ist unter localhost:15672 mit dem login guest / guest aufrufbar)
 
 2) Backend starten (Port 8080)
 - cd backend
