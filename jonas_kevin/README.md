@@ -14,6 +14,8 @@ Unser "kleines" CQRS + EDA Projekt für ein Shiggy-Tamagochi, welches basierend 
 - npm install
 - npm run dev
 
+4) Frontend im Browser aufrufen und Shiggy-Gochi ausprobieren :D
+
 Zur Erläuterung:
 Unser CQRS ist in zwei Modellen (EventListener / EventPublisher) im Java Spring-Backend realisiert. Der EventPublisher sendet events an RabbitMQ, und die EventListener reagieren auf diese Events in der Queue.
 Das Frontend liest die Daten per Websocket-connection vom Read-Modell. Der Rest erklärt sich von selbst wenn man in den Code reinschaut :D
